@@ -61,87 +61,87 @@ pipeline {
         //     }            
         // }      
 
-        // stage('SCA') {
+        stage('SCA') {
+            agent {
+                label 'dind'
+            }
+
+            steps {
+                sh '''
+                    cd server
+                    docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
+                    docker image ls
+                    sudo apt-get install -y curl
+
+                    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+                    ./bin/trivy image --format cyclonedx --output ${WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
+
+                    cd ${WORKSPACE}
+
+                    ls -lt                    
+                '''
+                stash name: 'sbom', includes: 'sbom.json'
+                archiveArtifacts artifacts: "sbom.json", allowEmptyArchive: true
+            }
+        }     
+
+        // stage('Debug') {
         //     agent {
-        //         label 'dind'
+        //         label 'alpine'
+        //     }    
+        //     steps {
+        //         sh 'cp ./test_reports/* ./'
+        //         sh 'ls -lt'
+        //         stash name: 'sbom', includes: 'sbom.json'
+        //         stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
+        //         stash name: 'zapsh-report', includes: 'zapsh-report.json'
+        //     }            
+        // }     
+
+        // stage('SendToDepTrack') {
+        //     agent {
+        //         label 'alpine'
         //     }
 
         //     steps {
+        //         unstash 'sbom'
+
         //         sh '''
-        //             cd server
-        //             docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
-        //             docker image ls
-        //             sudo apt-get install -y curl
+        //             echo ${WORKSPACE}                    
+        //             ls -lt           
 
-        //             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+        //             apk update && apk add --no-cache jq
 
-        //             ./bin/trivy image --format json --output ${WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
+        //             response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
+        //                 -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+        //                 -H "Content-Type: application/json" \
+        //                 -d '{
+        //                     "name": "podkatilovas_exam_4",
+        //                     "version": "1.0.0"
+        //                 }')
 
-        //             cd ${WORKSPACE}
+        //             uuid=$(echo $response | jq -r '.uuid')
+        //             echo "Project UUID: $uuid"
 
-        //             ls -lt                    
+        //             sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
+        //                  -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+        //                  -H "Content-Type: application/json" \
+        //                  -F "file=@sbom.json")
+
+        //             echo "Response: ${sbomresponse}"
+        //             http_code=${sbomresponse: -3}
+
+        //             echo "Result = $http_code"
+
+        //             if [ "$http_code" -ne 200 ]; then
+        //                 echo "Error: Failed to upload SBOM"
+        //                 exit 1
+        //             fi
+        //             ls -lt                                        
         //         '''
-        //         stash name: 'sbom', includes: 'sbom.json'
-        //         archiveArtifacts artifacts: "sbom.json", allowEmptyArchive: true
         //     }
         // }     
-
-        stage('Debug') {
-            agent {
-                label 'alpine'
-            }    
-            steps {
-                sh 'cp ./test_reports/* ./'
-                sh 'ls -lt'
-                stash name: 'sbom', includes: 'sbom.json'
-                stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
-                stash name: 'zapsh-report', includes: 'zapsh-report.json'
-            }            
-        }     
-
-        stage('SendToDepTrack') {
-            agent {
-                label 'alpine'
-            }
-
-            steps {
-                unstash 'sbom'
-
-                sh '''
-                    echo ${WORKSPACE}                    
-                    ls -lt           
-
-                    apk update && apk add --no-cache jq
-
-                    response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
-                        -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
-                        -H "Content-Type: application/json" \
-                        -d '{
-                            "name": "podkatilovas_exam_4",
-                            "version": "1.0.0"
-                        }')
-
-                    uuid=$(echo $response | jq -r '.uuid')
-                    echo "Project UUID: $uuid"
-
-                    sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
-                         -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
-                         -H "Content-Type: application/json" \
-                         -F "file=@sbom.json")
-
-                    echo "Response: ${sbomresponse}"
-                    http_code=${sbomresponse: -3}
-
-                    echo "Result = $http_code"
-
-                    if [ "$http_code" -ne 200 ]; then
-                        echo "Error: Failed to upload SBOM"
-                        exit 1
-                    fi
-                    ls -lt                                        
-                '''
-            }
-        }     
 
 
         // stage('QualtityGates') {
