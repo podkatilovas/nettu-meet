@@ -94,6 +94,7 @@ pipeline {
                     docker image ls
                     sudo apt-get install -y curl
                     curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                    pwd
                     ls -lt
                     ./bin/trivy image --format json --output sbom.json podkatilovas/nettu-meet:latest
                     #sudo grype docker:podkatilovas/pygoat:113 -o table >> ${SCA_REPORT}
