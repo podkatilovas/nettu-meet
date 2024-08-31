@@ -100,14 +100,33 @@ pipeline {
                         }')
                     uuid=$(echo $response | jq -r '.uuid')
                     echo "Project UUID: $uuid"
-                    #cd server
-                    #docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
-                    #docker image ls
-                    #sudo apt-get install -y curl
-                    #curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+                    cd server
+                    docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
+                    docker image ls
+                    sudo apt-get install -y curl
+
+                    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
                     #./bin/trivy image --format json --output ${WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
-                    #ls -lt
+
+                    cd ${WORKSPACE}
+
+                    sbomresponse = $(curl -k -X POST "https://${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
+                        -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+                        -H "Content-Type: application/json" \
+                        -F "file=@sbom.json")
+
+                    http_code=${response: -3}
+
+                    echo "Result = $http_code"
+
+                    if [ "$http_code" -ne 200 ]; then
+                        echo "Error: Failed to upload SBOM"
+                        exit 1
+                    fi
+                    ls -lt                    
                 '''
+                stash name: 'sbom', includes: 'sbom.json'
                 archiveArtifacts artifacts: "${WORKSPACE}/sbom.json", allowEmptyArchive: true
             }
         }     
