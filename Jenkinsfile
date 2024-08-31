@@ -36,7 +36,7 @@ pipeline {
                 script {
                     try {
                         sh '''
-                            sudo apk update && sudo apk add --no-cache python3 py3-pip py3-virtualenv
+                            apk update && apk add --no-cache python3 py3-pip py3-virtualenv
                             python3 -m venv venv
                             . venv/bin/activate
                             pip install semgrep
@@ -53,6 +53,29 @@ pipeline {
                 archiveArtifacts artifacts: "${SEMGREP_REPORT}", allowEmptyArchive: true
             }
         }   
+
+        // stage('Zap2') {
+        //      when {
+        //         expression { false }
+        //     }
+        //     agent {
+        //         label 'alpinejdk17'
+        //     }    
+
+        //     steps {
+        //         sh 'pwd'
+        //         sh 'java --version'
+        //         sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
+        //         sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
+        //         sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
+        //         sh 'ls -lt'            
+        //         sh './ZAP_2.15.0/zap.sh -cmd -quickurl http://192.168.0.101:8000 -quickout $(pwd)/zapsh-report.json'
+        //         sh 'ls -lt'
+        //         sh 'cat ./zapsh-report.json'
+        //         stash name: 'zapsh-report', includes: 'zapsh-report.json'
+        //         archiveArtifacts artifacts: 'zapsh-report.json', allowEmptyArchive: true         
+        //     }            
+        // }      
 
     //    stage('SonarTools') {
     //         steps {
