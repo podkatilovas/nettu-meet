@@ -117,7 +117,7 @@ pipeline {
                         -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
                         -H "Content-Type: application/json" \
                         -d '{
-                            "name": "podkatilovas_exam_3",
+                            "name": "podkatilovas_exam_4",
                             "version": "1.0.0"
                         }')
 
