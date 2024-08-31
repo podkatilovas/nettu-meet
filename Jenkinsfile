@@ -191,8 +191,8 @@ pipeline {
                     apk update && apk add --no-cache python3 py3-pip py3-virtualenv
                     python3 -m venv venv
                     . venv/bin/activate
-                    python -m dodgo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
-                    python -m dodgo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.json "ZAP Scan"
+                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
+                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.json "ZAP Scan"
                 '''
             }
         }   
