@@ -13,134 +13,128 @@ pipeline {
      }
 
      stages {
-        // stage("CheckJenkins") {
-        //     steps {
-        //         sh 'echo "I am working"'
-        //     }
-        // }
+        stage('SASTSemGrep') {
+            agent {
+                label 'alpine'
+            }
 
-        // stage('SASTSemGrep') {
-        //     agent {
-        //         label 'alpine'
-        //     }
+            steps {
+                script {
+                    try {
+                        sh '''
+                            apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+                            python3 -m venv venv
+                            . venv/bin/activate
+                            pip install semgrep
+                            semgrep ci --config auto --json > ${SEMGREP_REPORT}
+                        '''
+                    } catch (Exception e) {
+                        echo 'Semgrep encountered issues.'
+                    }
+                }
 
-        //     steps {
-        //         script {
-        //             try {
-        //                 sh '''
-        //                     apk update && apk add --no-cache python3 py3-pip py3-virtualenv
-        //                     python3 -m venv venv
-        //                     . venv/bin/activate
-        //                     pip install semgrep
-        //                     semgrep ci --config auto --json > ${SEMGREP_REPORT}
-        //                 '''
-        //             } catch (Exception e) {
-        //                 echo 'Semgrep encountered issues.'
-        //             }
-        //         }
+                sh 'ls -lth'
+                stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
+                archiveArtifacts artifacts: "${SEMGREP_REPORT}", allowEmptyArchive: true
+            }
+        }   
 
-        //         sh 'ls -lth'
-        //         stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
-        //         archiveArtifacts artifacts: "${SEMGREP_REPORT}", allowEmptyArchive: true
-        //     }
-        // }   
-
-        // stage('Zap') {
-        //     agent {
-        //         label 'alpine'
-        //     }    
-
-        //     steps {
-        //         sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
-        //         sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
-        //         sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
-        //         sh 'ls -lt'            
-        //         sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.xml'
-        //         sh 'ls -lt'
-        //         stash name: 'zapsh-report', includes: 'zapsh-report.xml'
-        //         archiveArtifacts artifacts: 'zapsh-report.xml', allowEmptyArchive: true         
-        //     }            
-        // }      
-
-        // stage('SCA') {
-        //     agent {
-        //         label 'dind'
-        //     }
-
-        //     steps {
-        //         sh '''
-        //             cd server
-        //             docker login -u aspodkatilov@gmail.com -p P@ssw0rd!
-        //             docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
-        //             docker image ls
-        //             sudo apt-get install -y curl
-
-        //             curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-
-        //             ./bin/trivy image --format cyclonedx --output ${WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
-
-        //             cd ${WORKSPACE}
-
-        //             ls -lt                    
-        //         '''
-        //         stash name: 'sbom', includes: 'sbom.json'
-        //         archiveArtifacts artifacts: "sbom.json", allowEmptyArchive: true
-        //     }
-        // }     
-
-        stage('Debug') {
+        stage('Zap') {
             agent {
                 label 'alpine'
             }    
+
             steps {
-                sh 'cp ./test_reports/* ./'
+                sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
+                sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
+                sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
+                sh 'ls -lt'            
+                sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.xml'
                 sh 'ls -lt'
-                stash name: 'sbom', includes: 'sbom.json'
-                stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
                 stash name: 'zapsh-report', includes: 'zapsh-report.xml'
+                archiveArtifacts artifacts: 'zapsh-report.xml', allowEmptyArchive: true         
             }            
+        }      
+
+        stage('SCA') {
+            agent {
+                label 'dind'
+            }
+
+            steps {
+                sh '''
+                    cd server
+                    docker login -u aspodkatilov@gmail.com -p P@ssw0rd!
+                    docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
+                    docker image ls
+                    sudo apt-get install -y curl
+
+                    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+                    ./bin/trivy image --format cyclonedx --output ${WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
+
+                    cd ${WORKSPACE}
+
+                    ls -lt                    
+                '''
+                stash name: 'sbom', includes: 'sbom.json'
+                archiveArtifacts artifacts: "sbom.json", allowEmptyArchive: true
+            }
         }     
 
-        // stage('SendToDepTrack') {
+        // stage('Debug') {
         //     agent {
         //         label 'alpine'
-        //     }
-
+        //     }    
         //     steps {
-        //         unstash 'sbom'
+        //         sh 'cp ./test_reports/* ./'
+        //         sh 'ls -lt'
+        //         stash name: 'sbom', includes: 'sbom.json'
+        //         stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
+        //         stash name: 'zapsh-report', includes: 'zapsh-report.xml'
+        //     }            
+        // }     
 
-        //         sh '''
-        //             echo ${WORKSPACE}                    
-        //             ls -lt           
+        stage('SendToDepTrack') {
+            agent {
+                label 'alpine'
+            }
 
-        //             apk update && apk add --no-cache jq
+            steps {
+                unstash 'sbom'
 
-        //             response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
-        //                 -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
-        //                 -H "Content-Type: application/json" \
-        //                 -d '{
-        //                     "name": "podkatilovas_exam_7",
-        //                     "version": "1.0.0"
-        //                 }')
+                sh '''
+                    echo ${WORKSPACE}                    
+                    ls -lt           
 
-        //             uuid=$(echo $response | jq -r '.uuid')
-        //             echo "Project UUID: $uuid"
+                    apk update && apk add --no-cache jq
+
+                    response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
+                        -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+                        -H "Content-Type: application/json" \
+                        -d '{
+                            "name": "podkatilovas_exam_8",
+                            "version": "1.0.0"
+                        }')
+
+                    uuid=$(echo $response | jq -r '.uuid')
+                    echo "Project UUID: $uuid"
 
                     
-        //             sbomresponse=$(curl -k -o /dev/null -s -w "%{http_code}" -X POST  "${DEPTRACK_URL}/api/v1/bom" \
-        //                 -H 'Content-Type: multipart/form-data; boundary=__X_BOM__' \
-        //                 -H "X-API-Key: ${DEPTRACK_TOKEN}" \
-        //                 -F "bom=@sbom.json" -F "project=${uuid}")
+                    sbomresponse=$(curl -k -o /dev/null -s -w "%{http_code}" -X POST  "${DEPTRACK_URL}/api/v1/bom" \
+                        -H 'Content-Type: multipart/form-data; boundary=__X_BOM__' \
+                        -H "X-API-Key: ${DEPTRACK_TOKEN}" \
+                        -F "bom=@sbom.json" -F "project=${uuid}")
 
-        //             echo "Result: $sbomresponse"
-        //             if [ "$sbomresponse" -ne "200" ]; then
-        //                 echo "Error: Failed to upload SBOM"
-        //                 exit 1
-        //             fi
-        //             ls -lt                                        
-        //         '''
-        //     }
-        // }     
+                    echo "Result: $sbomresponse"
+                    if [ "$sbomresponse" -ne "200" ]; then
+                        echo "Error: Failed to upload SBOM"
+                        exit 1
+                    fi
+                    ls -lt                                        
+                '''
+            }
+        }     
 
 
         stage('QualtityGates') {
@@ -167,8 +161,6 @@ pipeline {
                         //error("ZAP QG failed.")
                     }
 
-                    //ZAPSH_REPORT_MAX_ERROR    
-
                     def jsonText = readFile env.SEMGREP_REPORT
                     def json = new groovy.json.JsonSlurper().parseText(jsonText)
                     int errorCount = 0
@@ -177,7 +169,7 @@ pipeline {
                             errorCount+=1;
                         }
                     }
-                    echo "Errors: ${errorCount}"
+                    echo "SEMGREP error count: ${errorCount}"
                     if (errorCount > env.SEMGREP_REPORT_MAX_ERROR.toInteger()) {
                         echo "SEMGREP QG failed."
                         //для отладки не блочим
@@ -187,23 +179,23 @@ pipeline {
             }
         }     
 
-        // stage('SendToDodjo') {
-        //     agent {
-        //         label 'alpine'
-        //     }
-        //     steps {
-        //         unstash 'semgrep-report'
-        //         unstash 'zapsh-report'
+        stage('SendToDodjo') {
+            agent {
+                label 'alpine'
+            }
+            steps {
+                unstash 'semgrep-report'
+                unstash 'zapsh-report'
 
-        //         sh '''
-        //             apk update && apk add --no-cache python3 py3-pip py3-virtualenv
-        //             python3 -m venv venv
-        //             . venv/bin/activate
-        //             pip install requests
-        //             python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
-        //             python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.xml "ZAP Scan"
-        //         '''
-        //     }
-        // }   
+                sh '''
+                    apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install requests
+                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
+                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.xml "ZAP Scan"
+                '''
+            }
+        }   
      }
 }
