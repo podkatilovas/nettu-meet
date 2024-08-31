@@ -91,7 +91,7 @@ pipeline {
                 label 'alpine'
             }    
             steps {
-                stash name: 'sbom', includes: 'test/_eports/sbom.json'
+                stash name: 'sbom', includes: 'test_reports/sbom.json'
                 stash name: 'semgrep-report', includes: "test_reports/${SEMGREP_REPORT}"
                 stash name: 'zapsh-report', includes: 'test_reports/zapsh-report.json'
             }            
