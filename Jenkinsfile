@@ -53,7 +53,7 @@ pipeline {
                 sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
                 sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
                 sh 'ls -lt'            
-                sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.zml'
+                sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.xml'
                 sh 'ls -lt'
                 sh 'cat ./zapsh-report.xml'
                 stash name: 'zapsh-report', includes: 'zapsh-report.xml'
@@ -177,7 +177,6 @@ pipeline {
         //         }
         //     }
         // }     
-
 
         // stage('SendToDodjo') {
         //     agent {
