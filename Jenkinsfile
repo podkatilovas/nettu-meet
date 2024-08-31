@@ -43,23 +43,23 @@ pipeline {
         //     }
         // }   
 
-        // stage('Zap') {
-        //     agent {
-        //         label 'alpine'
-        //     }    
+        stage('Zap') {
+            agent {
+                label 'alpine'
+            }    
 
-        //     steps {
-        //         sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
-        //         sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
-        //         sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
-        //         sh 'ls -lt'            
-        //         sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.json'
-        //         sh 'ls -lt'
-        //         sh 'cat ./zapsh-report.json'
-        //         stash name: 'zapsh-report', includes: 'zapsh-report.json'
-        //         archiveArtifacts artifacts: 'zapsh-report.json', allowEmptyArchive: true         
-        //     }            
-        // }      
+            steps {
+                sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
+                sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
+                sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
+                sh 'ls -lt'            
+                sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.zml'
+                sh 'ls -lt'
+                #sh 'cat ./zapsh-report.xml'
+                stash name: 'zapsh-report', includes: 'zapsh-report.xml'
+                archiveArtifacts artifacts: 'zapsh-report.xml', allowEmptyArchive: true         
+            }            
+        }      
 
         // stage('SCA') {
         //     agent {
@@ -87,18 +87,18 @@ pipeline {
         //     }
         // }     
 
-        stage('Debug') {
-            agent {
-                label 'alpine'
-            }    
-            steps {
-                sh 'cp ./test_reports/* ./'
-                sh 'ls -lt'
-                stash name: 'sbom', includes: 'sbom.json'
-                stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
-                stash name: 'zapsh-report', includes: 'zapsh-report.json'
-            }            
-        }     
+        // stage('Debug') {
+        //     agent {
+        //         label 'alpine'
+        //     }    
+        //     steps {
+        //         sh 'cp ./test_reports/* ./'
+        //         sh 'ls -lt'
+        //         stash name: 'sbom', includes: 'sbom.json'
+        //         stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
+        //         stash name: 'zapsh-report', includes: 'zapsh-report.xml'
+        //     }            
+        // }     
 
         // stage('SendToDepTrack') {
         //     agent {
@@ -152,7 +152,7 @@ pipeline {
         //         unstash 'zapsh-report'
 
         //         script {
-        //             def jsonText = readFile 'zapsh-report.json'
+        //             def jsonText = readFile 'zapsh-report.xml'
         //             def json = new groovy.json.JsonSlurper().parseText(jsonText)
         //             int totalSum = 0
         //             json.site.each { site ->
@@ -179,124 +179,22 @@ pipeline {
         // }     
 
 
-        stage('SendToDodjo') {
-            agent {
-                label 'alpine'
-            }
-            steps {
-                unstash 'semgrep-report'
-                unstash 'zapsh-report'
-
-                sh '''
-                    apk update && apk add --no-cache python3 py3-pip py3-virtualenv
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install requests
-                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
-                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.json "ZAP Scan"
-                '''
-            }
-        }   
-
-
-
-        // stage('ZapQG') {
-        //     when {
-        //         expression { false }
-        //     }
-        //     steps {
-        //          unstash 'zapsh-report'
-        //          sh 'ls -lth'
-        //         script {
-        //             def jsonText = readFile 'zapsh-report.json'
-        //             def json = new groovy.json.JsonSlurper().parseText(jsonText)
-        //             int totalSum = 0
-        //             json.site.each { site ->
-        //                 site.alerts.each { alert ->
-        //                     totalSum += alert.count.toInteger()
-        //                 }
-        //             }
-        //             echo "Sum of counts: ${totalSum}"
-        //         }
-        //     }
-        // }     
-
-        // stage('CheckVault') {
+        // stage('SendToDodjo') {
         //     agent {
-        //         label 'dnd'
-        //     }
-        //     when {
-        //         expression { false }
-        //     }
-
-        //     steps {
-        //         script {
-        //             def secrets = [
-        //                 [path: 'labs/hub', engineVersion: 1, 
-        //                 secretValues: [
-        //                     [envVar: 'hub_login', vaultKey: 'login'],
-        //                     [envVar: 'hub_password', vaultKey: 'password']]]
-        //             ]
-        //             def configuration = [vaultUrl: 'http://192.168.0.101:8205',
-        //                  vaultCredentialId: 'vault_token',
-        //                  engineVersion: 1]
-        //             withVault([configuration: configuration, vaultSecrets: secrets]) {
-        //                 sh 'echo $hub_login'
-        //                 sh 'echo $hub_password'
-        //                 env.hub_login = hub_login
-        //                 env.hub_password = hub_password
-        //             }                    
-        //         }
-
-        //         sh 'docker login -u ${hub_login} -p ${hub_password}'
-        //     }
-        // }        
-
-        // stage('SASTSemGrepQG') {
-        //     agent {
-        //         label 'alpinejdk17'
-        //     }
-        //     when {
-        //         expression { false }
+        //         label 'alpine'
         //     }
         //     steps {
         //         unstash 'semgrep-report'
-        //         sh 'ls -lth'
-        //         script {
-        //             def jsonText = readFile env.SEMGREP_REPORT
-        //             def json = new groovy.json.JsonSlurper().parseText(jsonText)
-        //             int errorCount = 0
-        //             json.results.each { r ->
-        //                 if (r.extra.severity == "ERROR") {
-        //                     errorCount+=1;
-        //                 }
-        //             }
-        //             echo "Errors: ${errorCount}"
-        //             if (errorCount > env.SEMGREP_REPORT_MAX_ERROR.toInteger()) {
-        //                 error("SEMGREP QG failed.")
-        //             }
-        //         }
+        //         unstash 'zapsh-report'
+
+        //         sh '''
+        //             apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+        //             python3 -m venv venv
+        //             . venv/bin/activate
+        //             pip install requests
+        //             python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
+        //             python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.xml "ZAP Scan"
+        //         '''
         //     }
         // }   
-
-        // stage('SCA') {
-        //     agent {
-        //         label 'dnd'
-        //     }
-        //     when {
-        //         expression { true }
-        //     }
-
-        //     steps {
-        //         sh '''
-        //             #echo '192.168.5.13 harbor.cyber-ed.labs' >> /etc/hosts
-        //             sudo curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
-        //             sudo grype docker:podkatilovas/pygoat:113 -o table >> ${SCA_REPORT}
-        //             ls -lt
-        //         '''
-        //         stash name: 'semgrep-report', includes: "${SCA_REPORT}"
-        //         archiveArtifacts artifacts: "${SCA_REPORT}", allowEmptyArchive: true
-        //     }
-        // }                             
-    }
 }
