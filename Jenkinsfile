@@ -10,7 +10,7 @@ pipeline {
     //     REGISTRY_AUTH_PASSWORD = 'P@ssw0rd!'
     //     HARBOR_URL = 'https://hub.docker.com'
     //     DOCKER_IMAGE_NAME="podkatilovas/pygoat:${env.BUILD_NUMBER}"
-    //     //DOCKER_IMAGE_NAME="podkatilovas/pygoat:60"
+         DOCKER_IMAGE_NAME="podkatilovas/nettu-meet:latest"
     //     SSH_PASSWORD='kali'
          SEMGREP_REPORT = 'semgrep-report.json'
     //     SCA_REPORT='sca_report.txt'
@@ -86,10 +86,11 @@ pipeline {
 
             steps {
                 sh '''
+                    docker build . -t ${DOCKER_IMAGE_NAME} -f server/Dockerfile
                     #echo '192.168.5.13 harbor.cyber-ed.labs' >> /etc/hosts
                     #sudo curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
-                    curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-
+                    #curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+                    docker image ls
                     #sudo grype docker:podkatilovas/pygoat:113 -o table >> ${SCA_REPORT}
                     ls -lt
                 '''
