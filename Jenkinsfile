@@ -3,7 +3,7 @@ pipeline {
      environment {
          DOCKER_IMAGE_NAME="podkatilovas/nettu-meet:latest"
          SEMGREP_REPORT = 'semgrep-report.json'
-         DEPTRACK_PRJ_NAME="podkatilovas_exam_4"
+         DEPTRACK_PRJ_NAME="podkatilovas_exam_5"
          DEPTRACK_URL="https://s410-exam.cyber-ed.space:8081"
          DEPTRACK_TOKEN="odt_SfCq7Csub3peq7Y6lSlQy5Ngp9sSYpJl"
          DODJO_URL="https://s410-exam.cyber-ed.space:8083/api/v2/import-scan/"
