@@ -126,17 +126,15 @@ pipeline {
                     echo "Project UUID: $uuid"
 
                     
-                    sbomresponse = $(curl -k -X POST  "${DEPTRACK_URL}/api/v1/bom" \
+                    sbomresponse = $(curl -k -o /dev/null -s -w "%{http_code}" -X POST  "${DEPTRACK_URL}/api/v1/bom" \
                         -H 'Content-Type: multipart/form-data; boundary=__X_BOM__' \
                         -H "X-API-Key: ${DEPTRACK_TOKEN}" \
                         -F "bom=@sbom.json" -F "project=${uuid}")
 
-                    echo "Response: ${sbomresponse}"
-                    http_code=${sbomresponse: -3}
 
-                    echo "Result = $http_code"
+                    echo "Result = $sbomresponse"
 
-                    if [ "$http_code" -ne 200 ]; then
+                    if [ "$sbomresponse" -ne 200 ]; then
                         echo "Error: Failed to upload SBOM"
                         exit 1
                     fi
