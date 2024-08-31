@@ -1,4 +1,4 @@
-FROM node:14.15.4
+FROM node:16-bullseye
 
 # Install DEB dependencies and others.
 RUN \
