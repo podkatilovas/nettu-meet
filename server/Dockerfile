@@ -1,10 +1,18 @@
-FROM node:14.19.1-alpine3.15
+FROM node:19.0.0-buster
+
+# Update repository information and upgrade to a newer Debian release
+#RUN sed -i 's/stretch/buster/g' /etc/apt/sources.list && \
+#    apt-get update && \
+#    apt-get upgrade -y
+
+# Install DEB dependencies and others.
+#RUN apt-get install -y net-tools build-essential valgrind
 
 # Install DEB dependencies and others.
 RUN \
     set -x \
     && apt-get update \
-    && apt-get install -y net-tools build-essential valgrind
+    && apt-get install -y net-tools build-essential valgrind python3-pip
 
 WORKDIR /app
 
@@ -12,11 +20,3 @@ COPY package.json .
 COPY tsconfig.json .
 COPY src src
 RUN npm install
-
-ENV NETTU_REDIS_HOST="host.docker.internal"
-ENV NETTU_REDIS_PORT=6379
-ENV MONGODB_CONNECTION_STRING=mongodb://root:rootpassword@host.docker.internal:27017
-ENV MONGODB_NAME=nettu-meeting
-
-
-CMD npm run start

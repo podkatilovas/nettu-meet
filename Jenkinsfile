@@ -78,7 +78,7 @@ pipeline {
 
         stage('SCA') {
             agent {
-                label 'trivy'
+                label 'dind'
             }
             when {
                 expression { true }
