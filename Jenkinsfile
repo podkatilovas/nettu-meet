@@ -87,7 +87,7 @@ pipeline {
             steps {
                 sh '''
                     cd server
-                    docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
+                    docker build . -t ${DOCKER_IMAGE_NAME} -f server/Dockerfile
                     #echo '192.168.5.13 harbor.cyber-ed.labs' >> /etc/hosts
                     #sudo curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
                     #curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
