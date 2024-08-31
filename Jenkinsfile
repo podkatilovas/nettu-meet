@@ -102,21 +102,20 @@ pipeline {
                     ./bin/trivy image --format json --output ${WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
 
                     cd ${WORKSPACE}
+                    # sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
+                    #     -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+                    #     -H "Content-Type: application/json" \
+                    #     -F "file=@sbom.json")
 
-                    // sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
-                    //     -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
-                    //     -H "Content-Type: application/json" \
-                    //     -F "file=@sbom.json")
+                     #http_code=${response: -3}
 
-                    // http_code=${response: -3}
+                     #echo "Result = $http_code"
 
-                    // echo "Result = $http_code"
-
-                    // if [ "$http_code" -ne 200 ]; then
-                    //     echo "Error: Failed to upload SBOM"
-                    //     exit 1
-                    // fi
-                    ls -lt                    
+                     #if [ "$http_code" -ne 200 ]; then
+                     #    echo "Error: Failed to upload SBOM"
+                     #    exit 1
+                     #fi
+                    #ls -lt                    
                 '''
                 stash name: 'sbom', includes: 'sbom.json'
                 archiveArtifacts artifacts: "${WORKSPACE}/sbom.json", allowEmptyArchive: true
