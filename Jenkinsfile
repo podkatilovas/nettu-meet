@@ -96,8 +96,7 @@ pipeline {
                         -H "Content-Type: application/json" \
                         -d '{
                             "name": "podkatilovas_exam",
-                            "version": "1.0.0",
-                            "tags": ["podkatilovas"]
+                            "version": "1.0.0"
                         }')
                     uuid=$(echo $response | jq -r '.uuid')
                     echo "Project UUID: $uuid"
