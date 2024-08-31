@@ -87,17 +87,11 @@ pipeline {
             steps {
                 sh '''
                     cd server
-                    #docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
-                    #echo '192.168.5.13 harbor.cyber-ed.labs' >> /etc/hosts
-                    #sudo curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
-                    #curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+                    docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
                     docker image ls
                     sudo apt-get install -y curl
                     curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-                    pwd
-                    ls -lt
-                    ./bin/trivy image --format json --output sbom.json podkatilovas/nettu-meet:latest
-                    #sudo grype docker:podkatilovas/pygoat:113 -o table >> ${SCA_REPORT}
+                    ./bin/trivy image --format json --output sbom.json ${DOCKER_IMAGE_NAME}
                     ls -lt
                 '''
                 stash name: 'semgrep-report', includes: "${SCA_REPORT}"
