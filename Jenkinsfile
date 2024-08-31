@@ -1,25 +1,13 @@
 pipeline {
     agent any
-    // agent {
-    //     label 'alpinejdk17'
-    // }
      environment {
-    //     SONARQUBE_URL = 'http://192.168.0.101:9000'
-    //     SONARQUBE_AUTH_TOKEN = credentials('sonar-cred') // Replace with your credential ID
-    //     REGISTRY_AUTH_USERNAME = 'aspodkatilov@gmail.com'
-    //     REGISTRY_AUTH_PASSWORD = 'P@ssw0rd!'
-    //     HARBOR_URL = 'https://hub.docker.com'
-    //     DOCKER_IMAGE_NAME="podkatilovas/pygoat:${env.BUILD_NUMBER}"
          DOCKER_IMAGE_NAME="podkatilovas/nettu-meet:latest"
-    //     SSH_PASSWORD='kali'
          SEMGREP_REPORT = 'semgrep-report.json'
          DEPTRACK_PRJ_NAME="podkatilovas_exam_3"
          DEPTRACK_URL="https://s410-exam.cyber-ed.space:8081"
          DEPTRACK_TOKEN="odt_SfCq7Csub3peq7Y6lSlQy5Ngp9sSYpJl"
          DODJO_URL="https://s410-exam.cyber-ed.space:8083/api/v2/import-scan/"
          DODJO_TOKEN="c5b50032ffd2e0aa02e2ff56ac23f0e350af75b4"
-    //     SCA_REPORT='sca_report.txt'
-    //     SEMGREP_REPORT_MAX_ERROR="200"
      }
 
      stages {
@@ -102,9 +90,8 @@ pipeline {
             agent {
                 label 'alpine'
             }    
-
             steps {
-                stash name: 'sbom', includes: 'test/reports/sbom.json'
+                stash name: 'sbom', includes: 'test/_eports/sbom.json'
                 stash name: 'semgrep-report', includes: "test_reports/${SEMGREP_REPORT}"
                 stash name: 'zapsh-report', includes: 'test_reports/zapsh-report.json'
             }            
