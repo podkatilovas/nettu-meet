@@ -88,13 +88,25 @@ pipeline {
                     ./bin/trivy image --format json --output ${WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
 
                     cd ${WORKSPACE}
-                    
+
                     ls -lt                    
                 '''
                 stash name: 'sbom', includes: 'sbom.json'
-                archiveArtifacts artifacts: "${WORKSPACE}/sbom.json", allowEmptyArchive: true
+                archiveArtifacts artifacts: "sbom.json", allowEmptyArchive: true
             }
         }     
+
+        // stage('Debug') {
+        //     agent {
+        //         label 'alpine'
+        //     }    
+
+        //     steps {
+        //         stash name: 'sbom', includes: 'test/reports/sbom.json'
+        //         stash name: 'semgrep-report', includes: "test_reports/${SEMGREP_REPORT}"
+        //         stash name: 'zapsh-report', includes: 'test_reports/zapsh-report.json'
+        //     }            
+        // }     
 
         // stage('SendToDepTrack') {
         //     agent {
