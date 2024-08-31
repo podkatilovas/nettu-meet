@@ -27,57 +27,49 @@ pipeline {
         //     }
         // }
 
-        // stage('SASTSemGrep') {
-        //     agent {
-        //         label 'alpine'
-        //     }
-        //     when {
-        //         expression { true }
-        //     }
+        stage('SASTSemGrep') {
+            agent {
+                label 'alpine'
+            }
 
-        //     steps {
-        //         script {
-        //             try {
-        //                 sh '''
-        //                     apk update && apk add --no-cache python3 py3-pip py3-virtualenv
-        //                     python3 -m venv venv
-        //                     . venv/bin/activate
-        //                     pip install semgrep
-        //                     semgrep ci --config auto --json > ${SEMGREP_REPORT}
-        //                 '''
-        //             } catch (Exception e) {
-        //                 echo 'Semgrep encountered issues.'
-        //             }
-        //         }
+            steps {
+                script {
+                    try {
+                        sh '''
+                            apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+                            python3 -m venv venv
+                            . venv/bin/activate
+                            pip install semgrep
+                            semgrep ci --config auto --json > ${SEMGREP_REPORT}
+                        '''
+                    } catch (Exception e) {
+                        echo 'Semgrep encountered issues.'
+                    }
+                }
 
-        //         sh 'ls -lth'
-        //         stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
-        //         archiveArtifacts artifacts: "${SEMGREP_REPORT}", allowEmptyArchive: true
-        //     }
-        // }   
+                sh 'ls -lth'
+                stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
+                archiveArtifacts artifacts: "${SEMGREP_REPORT}", allowEmptyArchive: true
+            }
+        }   
 
-        // stage('Zap2') {
-        //      when {
-        //         expression { true }
-        //     }
-        //     agent {
-        //         label 'alpine'
-        //     }    
+        stage('Zap') {
+            agent {
+                label 'alpine'
+            }    
 
-        //     steps {
-        //         sh 'pwd'
-        //         //sh 'java --version'
-        //         sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
-        //         sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
-        //         sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
-        //         sh 'ls -lt'            
-        //         sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.json'
-        //         sh 'ls -lt'
-        //         sh 'cat ./zapsh-report.json'
-        //         stash name: 'zapsh-report', includes: 'zapsh-report.json'
-        //         archiveArtifacts artifacts: 'zapsh-report.json', allowEmptyArchive: true         
-        //     }            
-        // }      
+            steps {
+                sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
+                sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
+                sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
+                sh 'ls -lt'            
+                sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.json'
+                sh 'ls -lt'
+                sh 'cat ./zapsh-report.json'
+                stash name: 'zapsh-report', includes: 'zapsh-report.json'
+                archiveArtifacts artifacts: 'zapsh-report.json', allowEmptyArchive: true         
+            }            
+        }      
 
         stage('SCA') {
             agent {
@@ -111,19 +103,19 @@ pipeline {
 
                     cd ${WORKSPACE}
 
-                    sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
-                        -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
-                        -H "Content-Type: application/json" \
-                        -F "file=@sbom.json")
+                    // sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
+                    //     -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+                    //     -H "Content-Type: application/json" \
+                    //     -F "file=@sbom.json")
 
-                    http_code=${response: -3}
+                    // http_code=${response: -3}
 
-                    echo "Result = $http_code"
+                    // echo "Result = $http_code"
 
-                    if [ "$http_code" -ne 200 ]; then
-                        echo "Error: Failed to upload SBOM"
-                        exit 1
-                    fi
+                    // if [ "$http_code" -ne 200 ]; then
+                    //     echo "Error: Failed to upload SBOM"
+                    //     exit 1
+                    // fi
                     ls -lt                    
                 '''
                 stash name: 'sbom', includes: 'sbom.json'
