@@ -89,7 +89,7 @@ pipeline {
 
             steps {
                 sh '''
-                    echo ${env.WORKSPACE}
+                    echo ${WORKSPACE}
                     response=$(curl -k -s -X POST "${DEPTRACK_URL}/api/v1/project" \
                         -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
                         -H "Content-Type: application/json" \
@@ -105,10 +105,10 @@ pipeline {
                     #docker image ls
                     #sudo apt-get install -y curl
                     #curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-                    #./bin/trivy image --format json --output ${env.WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
+                    #./bin/trivy image --format json --output ${WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
                     #ls -lt
                 '''
-                archiveArtifacts artifacts: "${env.WORKSPACE}/sbom.json", allowEmptyArchive: true
+                archiveArtifacts artifacts: "${WORKSPACE}/sbom.json", allowEmptyArchive: true
             }
         }     
 
