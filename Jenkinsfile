@@ -13,6 +13,9 @@ pipeline {
          DOCKER_IMAGE_NAME="podkatilovas/nettu-meet:latest"
     //     SSH_PASSWORD='kali'
          SEMGREP_REPORT = 'semgrep-report.json'
+         DEPTRACK_PRJ_NAME="podkatilovas_exam"
+         DEPTRACK_URL="https://s410-exam.cyber-ed.space:8081"
+         DEPTRACK_TOKEN="odt_SfCq7Csub3peq7Y6lSlQy5Ngp9sSYpJl"
     //     SCA_REPORT='sca_report.txt'
     //     SEMGREP_REPORT_MAX_ERROR="200"
      }
@@ -86,16 +89,26 @@ pipeline {
 
             steps {
                 sh '''
-                    cd server
-                    docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
-                    docker image ls
-                    sudo apt-get install -y curl
-                    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-                    ./bin/trivy image --format json --output sbom.json ${DOCKER_IMAGE_NAME}
-                    ls -lt
+                    echo ${env.WORKSPACE}
+                    response=$(curl -k -s -X POST "${DEPTRACK_URL}/api/v1/project" \
+                        -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+                        -H "Content-Type: application/json" \
+                        -d '{
+                            "name": "${DEPTRACK_PRJ_NAME}",
+                            "version": "1.0.0",
+                            "tags": ["podkatilovas"]
+                        }')
+                    uuid=$(echo $response | jq -r '.uuid')
+                    echo "Project UUID: $uuid"
+                    #cd server
+                    #docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
+                    #docker image ls
+                    #sudo apt-get install -y curl
+                    #curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                    #./bin/trivy image --format json --output ${env.WORKSPACE}/sbom.json ${DOCKER_IMAGE_NAME}
+                    #ls -lt
                 '''
-                stash name: 'semgrep-report', includes: "${SCA_REPORT}"
-                archiveArtifacts artifacts: "${SCA_REPORT}", allowEmptyArchive: true
+                archiveArtifacts artifacts: "${env.WORKSPACE}/sbom.json", allowEmptyArchive: true
             }
         }     
 
