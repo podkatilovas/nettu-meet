@@ -10,7 +10,7 @@ WORKDIR /app
 
 COPY package.json .
 COPY tsconfig.json .
-COPY src src
+COPY server/src src
 RUN npm install
 
 ENV NETTU_REDIS_HOST="host.docker.internal"
