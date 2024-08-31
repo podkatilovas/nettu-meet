@@ -100,49 +100,49 @@ pipeline {
             }            
         }     
 
-        stage('SendToDepTrack') {
-            agent {
-                label 'alpine'
-            }
+        // stage('SendToDepTrack') {
+        //     agent {
+        //         label 'alpine'
+        //     }
 
-            steps {
-                unstash 'sbom'
+        //     steps {
+        //         unstash 'sbom'
 
-                sh '''
-                    echo ${WORKSPACE}                    
-                    ls -lt           
+        //         sh '''
+        //             echo ${WORKSPACE}                    
+        //             ls -lt           
 
-                    apk update && apk add --no-cache jq
+        //             apk update && apk add --no-cache jq
 
-                    response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
-                        -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
-                        -H "Content-Type: application/json" \
-                        -d '{
-                            "name": "podkatilovas_exam_4",
-                            "version": "1.0.0"
-                        }')
+        //             response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
+        //                 -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+        //                 -H "Content-Type: application/json" \
+        //                 -d '{
+        //                     "name": "podkatilovas_exam_4",
+        //                     "version": "1.0.0"
+        //                 }')
 
-                    uuid=$(echo $response | jq -r '.uuid')
-                    echo "Project UUID: $uuid"
+        //             uuid=$(echo $response | jq -r '.uuid')
+        //             echo "Project UUID: $uuid"
 
-                    sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
-                         -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
-                         -H "Content-Type: application/json" \
-                         -F "file=@sbom.json")
+        //             sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
+        //                  -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
+        //                  -H "Content-Type: application/json" \
+        //                  -F "file=@sbom.json")
 
-                    echo "Response: ${sbomresponse}"
-                    http_code=${sbomresponse: -3}
+        //             echo "Response: ${sbomresponse}"
+        //             http_code=${sbomresponse: -3}
 
-                    echo "Result = $http_code"
+        //             echo "Result = $http_code"
 
-                    if [ "$http_code" -ne 200 ]; then
-                        echo "Error: Failed to upload SBOM"
-                        exit 1
-                    fi
-                    ls -lt                                        
-                '''
-            }
-        }     
+        //             if [ "$http_code" -ne 200 ]; then
+        //                 echo "Error: Failed to upload SBOM"
+        //                 exit 1
+        //             fi
+        //             ls -lt                                        
+        //         '''
+        //     }
+        // }     
 
 
         // stage('QualtityGates') {
@@ -182,24 +182,24 @@ pipeline {
         // }     
 
 
-        // stage('SendToDodjo') {
-        //     agent {
-        //         label 'alpine'
-        //     }
-        //     steps {
-        //         unstash 'semgrep-report'
-        //         unstash 'zapsh-report'
+        stage('SendToDodjo') {
+            agent {
+                label 'alpine'
+            }
+            steps {
+                unstash 'semgrep-report'
+                unstash 'zapsh-report'
 
-        //         sh '''
-        //             apk update && apk add --no-cache python3 py3-pip py3-virtualenv
-        //             python3 -m venv venv
-        //             . venv/bin/activate
-        //             python -m dodgo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
-        //             python -m dodgo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.json "ZAP Scan"
-        //         '''
-        //         }
-        //     }
-        // }   
+                sh '''
+                    apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    python -m dodgo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
+                    python -m dodgo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.json "ZAP Scan"
+                '''
+                }
+            }
+        }   
 
 
 

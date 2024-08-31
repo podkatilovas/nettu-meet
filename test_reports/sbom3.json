@@ -1,0 +1,36 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.3",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2023-08-31T12:34:56Z",
+    "tools": [
+      {
+        "vendor": "ExampleCorp",
+        "name": "ExampleTool",
+        "version": "1.0.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "My Application",
+      "version": "1.0.0",
+      "purl": "pkg:generic/my-application@1.0.0"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "ExampleComponent",
+      "version": "2.3.1",
+      "purl": "pkg:generic/example-component@2.3.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    }
+  ]
+}
