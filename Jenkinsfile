@@ -8,6 +8,8 @@ pipeline {
          DEPTRACK_TOKEN="odt_SfCq7Csub3peq7Y6lSlQy5Ngp9sSYpJl"
          DODJO_URL="https://s410-exam.cyber-ed.space:8083/api/v2/import-scan/"
          DODJO_TOKEN="c5b50032ffd2e0aa02e2ff56ac23f0e350af75b4"
+         SEMGREP_REPORT_MAX_ERROR: "5"
+         ZAPSH_REPORT_MAX_ERROR: "5"
      }
 
      stages {
@@ -43,23 +45,22 @@ pipeline {
         //     }
         // }   
 
-        stage('Zap') {
-            agent {
-                label 'alpine'
-            }    
+        // stage('Zap') {
+        //     agent {
+        //         label 'alpine'
+        //     }    
 
-            steps {
-                sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
-                sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
-                sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
-                sh 'ls -lt'            
-                sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.xml'
-                sh 'ls -lt'
-                sh 'cat ./zapsh-report.xml'
-                stash name: 'zapsh-report', includes: 'zapsh-report.xml'
-                archiveArtifacts artifacts: 'zapsh-report.xml', allowEmptyArchive: true         
-            }            
-        }      
+        //     steps {
+        //         sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
+        //         sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
+        //         sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
+        //         sh 'ls -lt'            
+        //         sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.xml'
+        //         sh 'ls -lt'
+        //         stash name: 'zapsh-report', includes: 'zapsh-report.xml'
+        //         archiveArtifacts artifacts: 'zapsh-report.xml', allowEmptyArchive: true         
+        //     }            
+        // }      
 
         // stage('SCA') {
         //     agent {
@@ -118,7 +119,7 @@ pipeline {
         //                 -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
         //                 -H "Content-Type: application/json" \
         //                 -d '{
-        //                     "name": "podkatilovas_exam_6",
+        //                     "name": "podkatilovas_exam_7",
         //                     "version": "1.0.0"
         //                 }')
 
@@ -152,16 +153,16 @@ pipeline {
         //         unstash 'zapsh-report'
 
         //         script {
-        //             def jsonText = readFile 'zapsh-report.xml'
-        //             def json = new groovy.json.JsonSlurper().parseText(jsonText)
-        //             int totalSum = 0
-        //             json.site.each { site ->
-        //                 site.alerts.each { alert ->
-        //                     totalSum += alert.count.toInteger()
-        //                 }
-        //             }
-        //             echo "Sum of counts: ${totalSum}"
-
+        //             // def xml = readFile 'zapsh-report.xml'
+        //             // def json = new groovy.json.JsonSlurper().parseText(jsonText)
+        //             // int totalSum = 0
+        //             // json.site.each { site ->
+        //             //     site.alerts.each { alert ->
+        //             //         totalSum += alert.count.toInteger()
+        //             //     }
+        //             // }
+        //             // echo "Sum of counts: ${totalSum}"
+        //             //ZAPSH_REPORT_MAX_ERROR    
         //             def jsonText = readFile env.SEMGREP_REPORT
         //             def json = new groovy.json.JsonSlurper().parseText(jsonText)
         //             int errorCount = 0
@@ -178,23 +179,23 @@ pipeline {
         //     }
         // }     
 
-        // stage('SendToDodjo') {
-        //     agent {
-        //         label 'alpine'
-        //     }
-        //     steps {
-        //         unstash 'semgrep-report'
-        //         unstash 'zapsh-report'
+        stage('SendToDodjo') {
+            agent {
+                label 'alpine'
+            }
+            steps {
+                unstash 'semgrep-report'
+                unstash 'zapsh-report'
 
-        //         sh '''
-        //             apk update && apk add --no-cache python3 py3-pip py3-virtualenv
-        //             python3 -m venv venv
-        //             . venv/bin/activate
-        //             pip install requests
-        //             python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
-        //             python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.xml "ZAP Scan"
-        //         '''
-        //     }
-        // }   
+                sh '''
+                    apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install requests
+                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
+                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.xml "ZAP Scan"
+                '''
+            }
+        }   
      }
 }
