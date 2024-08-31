@@ -36,7 +36,7 @@ pipeline {
                 script {
                     try {
                         sh '''
-                            apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+                            sudo apk update && sudo apk add --no-cache python3 py3-pip py3-virtualenv
                             python3 -m venv venv
                             . venv/bin/activate
                             pip install semgrep
