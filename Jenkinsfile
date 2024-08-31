@@ -129,7 +129,7 @@ pipeline {
                          -H "Content-Type: application/json" \
                          -F "file=@sbom.json")
 
-                    http_code=${response: -3}
+                    http_code=${sbomresponse: -3}
 
                     echo "Result = $http_code"
 
@@ -149,6 +149,7 @@ pipeline {
         //     }
 
         //     steps {
+        //         unstash 'semgrep-report'
         //         unstash 'zapsh-report'
         //     }
         // }     
