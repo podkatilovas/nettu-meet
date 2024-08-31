@@ -129,6 +129,7 @@ pipeline {
                          -H "Content-Type: application/json" \
                          -F "file=@sbom.json")
 
+                    echo "Response: ${sbomresponse}"
                     http_code=${sbomresponse: -3}
 
                     echo "Result = $http_code"
