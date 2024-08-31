@@ -69,6 +69,7 @@ pipeline {
             steps {
                 sh '''
                     cd server
+                    docker login -u aspodkatilov@gmail.com -p P@ssw0rd!
                     docker build . -t ${DOCKER_IMAGE_NAME} -f Dockerfile
                     docker image ls
                     sudo apt-get install -y curl
