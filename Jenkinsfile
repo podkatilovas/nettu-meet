@@ -88,18 +88,18 @@ pipeline {
         //     }
         // }     
 
-        // stage('Debug') {
-        //     agent {
-        //         label 'alpine'
-        //     }    
-        //     steps {
-        //         sh 'cp ./test_reports/* ./'
-        //         sh 'ls -lt'
-        //         stash name: 'sbom', includes: 'sbom.json'
-        //         stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
-        //         stash name: 'zapsh-report', includes: 'zapsh-report.xml'
-        //     }            
-        // }     
+        stage('Debug') {
+            agent {
+                label 'alpine'
+            }    
+            steps {
+                sh 'cp ./test_reports/* ./'
+                sh 'ls -lt'
+                stash name: 'sbom', includes: 'sbom.json'
+                stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
+                stash name: 'zapsh-report', includes: 'zapsh-report.xml'
+            }            
+        }     
 
         // stage('SendToDepTrack') {
         //     agent {
