@@ -91,7 +91,7 @@ pipeline {
                 sh '''
                     echo ${WORKSPACE}
                     pwd
-                    response=$(curl -k -s -X POST "${DEPTRACK_URL}/api/v1/project" \
+                    response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
                         -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
                         -H "Content-Type: application/json" \
                         -d '{
