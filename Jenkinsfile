@@ -53,28 +53,50 @@ pipeline {
         //     }
         // }   
 
-        stage('Zap2') {
-             when {
+        // stage('Zap2') {
+        //      when {
+        //         expression { true }
+        //     }
+        //     agent {
+        //         label 'alpine'
+        //     }    
+
+        //     steps {
+        //         sh 'pwd'
+        //         //sh 'java --version'
+        //         sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
+        //         sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
+        //         sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
+        //         sh 'ls -lt'            
+        //         sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.json'
+        //         sh 'ls -lt'
+        //         sh 'cat ./zapsh-report.json'
+        //         stash name: 'zapsh-report', includes: 'zapsh-report.json'
+        //         archiveArtifacts artifacts: 'zapsh-report.json', allowEmptyArchive: true         
+        //     }            
+        // }      
+
+        stage('SCA') {
+            agent {
+                label 'dind'
+            }
+            when {
                 expression { true }
             }
-            agent {
-                label 'alpine'
-            }    
 
             steps {
-                sh 'pwd'
-                //sh 'java --version'
-                sh 'curl -L -o ZAP_2.15.0_Linux.tar.gz https://github.com/zaproxy/zaproxy/releases/download/v2.15.0/ZAP_2.15.0_Linux.tar.gz'
-                sh 'tar -xzf ZAP_2.15.0_Linux.tar.gz'
-                sh './ZAP_2.15.0/zap.sh -cmd -addonupdate -addoninstall wappalyzer -addoninstall pscanrulesBeta'
-                sh 'ls -lt'            
-                sh './ZAP_2.15.0/zap.sh -cmd -quickurl https://s410-exam.cyber-ed.space:8084 -quickout $(pwd)/zapsh-report.json'
-                sh 'ls -lt'
-                sh 'cat ./zapsh-report.json'
-                stash name: 'zapsh-report', includes: 'zapsh-report.json'
-                archiveArtifacts artifacts: 'zapsh-report.json', allowEmptyArchive: true         
-            }            
-        }      
+                sh '''
+                    #echo '192.168.5.13 harbor.cyber-ed.labs' >> /etc/hosts
+                    #sudo curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
+                    curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+                    #sudo grype docker:podkatilovas/pygoat:113 -o table >> ${SCA_REPORT}
+                    ls -lt
+                '''
+                stash name: 'semgrep-report', includes: "${SCA_REPORT}"
+                archiveArtifacts artifacts: "${SCA_REPORT}", allowEmptyArchive: true
+            }
+        }     
 
     //    stage('SonarTools') {
     //         steps {
