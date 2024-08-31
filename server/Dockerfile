@@ -1,4 +1,4 @@
-FROM node:16-bullseye
+FROM node:14.19.1-alpine3.15
 
 # Install DEB dependencies and others.
 RUN \
