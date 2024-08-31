@@ -194,7 +194,6 @@ pipeline {
                     python -m dodgo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
                     python -m dodgo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.json "ZAP Scan"
                 '''
-                }
             }
         }   
 
