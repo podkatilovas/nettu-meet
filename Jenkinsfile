@@ -153,19 +153,20 @@ pipeline {
                 unstash 'zapsh-report'
 
                 script {
-                    def xmlFile = readFile 'zapsh-report.xml'
-                    def xml = new XmlSlurper().parseText(xmlFile)
-                    int zapErrorCount = 0
-                    xml.site.each { site ->
-                        site.alerts.alertitem.each { alert ->
-                            if (alert.riskcode == "3") {
-                                zapErrorCount += alert.count.toInteger()
-                            }                            
-                        }
+                    def xmlFileContent = readFile 'zapsh-report.xml'
+                    //<riskdesc>High (Low)</riskdesc>
+                    def searchString = "<riskcode>3</riskcode>"
+                    def lines = xmlFileContent.split('\n')
+                    int zapErrorCount = lines.count { line -> line.contains(searchString) }
+
+                    echo "ZAP total error with risk 3 (High): ${zapErrorCount}"
+
+                    if (errorCount > env.SEMGREP_REPORT_MAX_ERROR.toInteger()) {
+                        echo "ZAP QG failed."
+                        //для отладки не блочим
+                        //error("ZAP QG failed.")
                     }
 
-                    // Output the total sum of counts
-                    echo "ZAP total error with risk 3 (High): ${zapErrorCount}"
                     //ZAPSH_REPORT_MAX_ERROR    
 
                     def jsonText = readFile env.SEMGREP_REPORT
@@ -178,6 +179,7 @@ pipeline {
                     }
                     echo "Errors: ${errorCount}"
                     if (errorCount > env.SEMGREP_REPORT_MAX_ERROR.toInteger()) {
+                        echo "SEMGREP QG failed."
                         //для отладки не блочим
                         //error("SEMGREP QG failed.")
                     }
