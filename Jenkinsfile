@@ -126,9 +126,9 @@ pipeline {
                     echo "Project UUID: $uuid"
 
                     
-                    sbomresponse = $(curl -k -X POST -H "${DEPTRACK_URL}/api/v1/bom" \
+                    sbomresponse = $(curl -k -X POST  "${DEPTRACK_URL}/api/v1/bom" \
                         -H 'Content-Type: multipart/form-data; boundary=__X_BOM__' \
-                        "X-API-Key: ${DEPTRACK_TOKEN}" \
+                        -H "X-API-Key: ${DEPTRACK_TOKEN}" \
                         -F "bom=@sbom.json" -F "project=${uuid}")
 
                     echo "Response: ${sbomresponse}"
