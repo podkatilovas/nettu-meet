@@ -108,8 +108,11 @@ pipeline {
                 unstash 'sbom'
 
                 sh '''
-                    echo ${WORKSPACE}
-                    ls -lt
+                    echo ${WORKSPACE}                    
+                    ls -lt           
+
+                    apk update && apk add --no-cache jq
+
                     response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
                         -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
                         -H "Content-Type: application/json" \
