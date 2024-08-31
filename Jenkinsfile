@@ -161,7 +161,7 @@ pipeline {
 
                     echo "ZAP total error with risk 3 (High): ${zapErrorCount}"
 
-                    if (errorCount > env.SEMGREP_REPORT_MAX_ERROR.toInteger()) {
+                    if (zapErrorCount > env.SEMGREP_REPORT_MAX_ERROR.toInteger()) {
                         echo "ZAP QG failed."
                         //для отладки не блочим
                         //error("ZAP QG failed.")
