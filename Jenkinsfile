@@ -111,7 +111,7 @@ pipeline {
 
                     cd ${WORKSPACE}
 
-                    sbomresponse = $(curl -k -X POST "https://${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
+                    sbomresponse = $(curl -k -X POST "${DEPTRACK_URL}/api/v1/project/${uuid}/sbom" \
                         -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
                         -H "Content-Type: application/json" \
                         -F "file=@sbom.json")
