@@ -16,6 +16,7 @@ pipeline {
     //     SCA_REPORT='sca_report.txt'
     //     SEMGREP_REPORT_MAX_ERROR="200"
     // }
+    
      stages {
         stage("CheckJenkins") {
             steps {
