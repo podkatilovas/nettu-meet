@@ -91,9 +91,11 @@ pipeline {
                 label 'alpine'
             }    
             steps {
-                stash name: 'sbom', includes: 'test_reports/sbom.json'
-                stash name: 'semgrep-report', includes: "test_reports/${SEMGREP_REPORT}"
-                stash name: 'zapsh-report', includes: 'test_reports/zapsh-report.json'
+                sh 'cp ./test_reports/* ./'
+                sh 'ls -lt'
+                stash name: 'sbom', includes: 'sbom.json'
+                stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
+                stash name: 'zapsh-report', includes: 'zapsh-report.json'
             }            
         }     
 
@@ -107,6 +109,7 @@ pipeline {
 
                 sh '''
                     echo ${WORKSPACE}
+                    ls -lt
                     response=$(curl -k -s -X PUT "${DEPTRACK_URL}/api/v1/project" \
                         -H "X-Api-Key: ${DEPTRACK_TOKEN}" \
                         -H "Content-Type: application/json" \
