@@ -3,7 +3,7 @@ pipeline {
     // agent {
     //     label 'alpinejdk17'
     // }
-    // environment {
+     environment {
     //     SONARQUBE_URL = 'http://192.168.0.101:9000'
     //     SONARQUBE_AUTH_TOKEN = credentials('sonar-cred') // Replace with your credential ID
     //     REGISTRY_AUTH_USERNAME = 'aspodkatilov@gmail.com'
@@ -12,17 +12,48 @@ pipeline {
     //     DOCKER_IMAGE_NAME="podkatilovas/pygoat:${env.BUILD_NUMBER}"
     //     //DOCKER_IMAGE_NAME="podkatilovas/pygoat:60"
     //     SSH_PASSWORD='kali'
-    //     SEMGREP_REPORT = 'semgrep-report.json'
+         SEMGREP_REPORT = 'semgrep-report.json'
     //     SCA_REPORT='sca_report.txt'
     //     SEMGREP_REPORT_MAX_ERROR="200"
-    // }
-    
+     }
+
      stages {
-        stage("CheckJenkins") {
-            steps {
-                sh 'echo "I am working"'
+        // stage("CheckJenkins") {
+        //     steps {
+        //         sh 'echo "I am working"'
+        //     }
+        // }
+
+        stage('SASTSemGrep') {
+            agent {
+                label 'alpine'
             }
-        }
+            when {
+                expression { true }
+            }
+
+            steps {
+                script {
+                    try {
+                        sh '''
+                            apt-get update && apt-get install -y python3 python3-pip python3-venv
+                            python3 -m venv venv
+                            . venv/bin/activate
+                            pip install semgrep
+                            semgrep ci --config auto --json > ${SEMGREP_REPORT}
+                        '''
+                    } catch (Exception e) {
+                        echo 'Semgrep encountered issues.'
+                    }
+                }
+
+                // List files to verify output (optional)
+                sh 'ls -lth'
+                stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
+                archiveArtifacts artifacts: "${SEMGREP_REPORT}", allowEmptyArchive: true
+            }
+        }   
+
     //    stage('SonarTools') {
     //         steps {
     //             script {
@@ -238,35 +269,6 @@ pipeline {
         //         sh 'docker login -u ${hub_login} -p ${hub_password}'
         //     }
         // }        
-        // stage('SASTSemGrep') {
-        //     agent {
-        //         label 'alpinejdk17'
-        //     }
-        //     when {
-        //         expression { false }
-        //     }
-
-        //     steps {
-        //         script {
-        //             try {
-        //                 sh '''
-        //                     apt-get update && apt-get install -y python3 python3-pip python3-venv
-        //                     python3 -m venv venv
-        //                     . venv/bin/activate
-        //                     pip install semgrep
-        //                     semgrep ci --config auto --json > ${SEMGREP_REPORT}
-        //                 '''
-        //             } catch (Exception e) {
-        //                 echo 'Semgrep encountered issues.'
-        //             }
-        //         }
-
-        //         // List files to verify output (optional)
-        //         sh 'ls -lth'
-        //         stash name: 'semgrep-report', includes: "${SEMGREP_REPORT}"
-        //         archiveArtifacts artifacts: "${SEMGREP_REPORT}", allowEmptyArchive: true
-        //     }
-        // }   
 
         // stage('SASTSemGrepQG') {
         //     agent {
