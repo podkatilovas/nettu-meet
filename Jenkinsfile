@@ -143,59 +143,59 @@ pipeline {
         // }     
 
 
-        // stage('QualtityGates') {
-        //     agent {
-        //         label 'alpine'
-        //     }
-
-        //     steps {
-        //         unstash 'semgrep-report'
-        //         unstash 'zapsh-report'
-
-        //         script {
-        //             // def xml = readFile 'zapsh-report.xml'
-        //             // def json = new groovy.json.JsonSlurper().parseText(jsonText)
-        //             // int totalSum = 0
-        //             // json.site.each { site ->
-        //             //     site.alerts.each { alert ->
-        //             //         totalSum += alert.count.toInteger()
-        //             //     }
-        //             // }
-        //             // echo "Sum of counts: ${totalSum}"
-        //             //ZAPSH_REPORT_MAX_ERROR    
-        //             def jsonText = readFile env.SEMGREP_REPORT
-        //             def json = new groovy.json.JsonSlurper().parseText(jsonText)
-        //             int errorCount = 0
-        //             json.results.each { r ->
-        //                 if (r.extra.severity == "ERROR") {
-        //                     errorCount+=1;
-        //                 }
-        //             }
-        //             echo "Errors: ${errorCount}"
-        //             if (errorCount > env.SEMGREP_REPORT_MAX_ERROR.toInteger()) {
-        //                 error("SEMGREP QG failed.")
-        //             }
-        //         }
-        //     }
-        // }     
-
-        stage('SendToDodjo') {
+        stage('QualtityGates') {
             agent {
                 label 'alpine'
             }
+
             steps {
                 unstash 'semgrep-report'
                 unstash 'zapsh-report'
 
-                sh '''
-                    apk update && apk add --no-cache python3 py3-pip py3-virtualenv
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install requests
-                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
-                    python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.xml "ZAP Scan"
-                '''
+                script {
+                    // def xml = readFile 'zapsh-report.xml'
+                    // def json = new groovy.json.JsonSlurper().parseText(jsonText)
+                    // int totalSum = 0
+                    // json.site.each { site ->
+                    //     site.alerts.each { alert ->
+                    //         totalSum += alert.count.toInteger()
+                    //     }
+                    // }
+                    // echo "Sum of counts: ${totalSum}"
+                    //ZAPSH_REPORT_MAX_ERROR    
+                    def jsonText = readFile env.SEMGREP_REPORT
+                    def json = new groovy.json.JsonSlurper().parseText(jsonText)
+                    int errorCount = 0
+                    json.results.each { r ->
+                        if (r.extra.severity == "ERROR") {
+                            errorCount+=1;
+                        }
+                    }
+                    echo "Errors: ${errorCount}"
+                    if (errorCount > env.SEMGREP_REPORT_MAX_ERROR.toInteger()) {
+                        error("SEMGREP QG failed.")
+                    }
+                }
             }
-        }   
+        }     
+
+        // stage('SendToDodjo') {
+        //     agent {
+        //         label 'alpine'
+        //     }
+        //     steps {
+        //         unstash 'semgrep-report'
+        //         unstash 'zapsh-report'
+
+        //         sh '''
+        //             apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+        //             python3 -m venv venv
+        //             . venv/bin/activate
+        //             pip install requests
+        //             python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} semgrep-report.json "Semgrep JSON Report"
+        //             python -m dodjo ${DODJO_URL} ${DODJO_TOKEN} zapsh-report.xml "ZAP Scan"
+        //         '''
+        //     }
+        // }   
      }
 }
